@@ -1,0 +1,559 @@
+// Freesia — Prisma Schema
+// Mirrors the original Flask/SQLite schema 1:1. Back on SQLite.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  employee
+  customer
+}
+
+enum UserStatus {
+  active
+  disabled
+}
+
+enum ProductStatus {
+  active
+  draft
+  archived
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  preparing
+  shipped
+  delivered
+  cancelled
+}
+
+enum BranchStatus {
+  active
+  disabled
+}
+
+enum WarehouseType {
+  main
+  branch
+  online_fulfillment
+}
+
+enum WarehouseStatus {
+  active
+  disabled
+}
+
+enum MovementType {
+  purchase
+  sale
+  online_sale
+  pos_sale
+  transfer_out
+  transfer_in
+  adjustment
+  return
+  damage
+  cancelled_order_restore
+}
+
+enum TransferStatus {
+  pending
+  completed
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  card
+  instapay
+  vodafone_cash
+  other
+}
+
+enum SaleStatus {
+  completed
+  voided
+}
+
+enum ExpenseCategory {
+  electricity
+  rent
+  water
+  internet
+  salaries
+  employee_advance
+  employee_bonus
+  shipping
+  maintenance
+  purchases
+  marketing
+  other
+}
+
+enum EmployeeExpenseType {
+  salary
+  advance
+  bonus
+  deduction
+  other
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  status       UserStatus @default(active)
+  phone        String?
+  address      String?
+  branchId     String?  @map("branch_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  branch              Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  employeePermissions EmployeePermission[]
+  cartItems           CartItem[]
+  wishlistItems       WishlistItem[]
+  orders              Order[]
+
+  inventoryMovements    InventoryMovement[]
+  stockTransfersCreated StockTransfer[]     @relation("StockTransferCreatedBy")
+  posSales              PosSale[]           @relation("PosSaleCashier")
+  expensesCreated       Expense[]           @relation("ExpenseCreatedBy")
+  employeeExpensesOwned EmployeeExpense[]   @relation("EmployeeExpenseOwner")
+  employeeExpensesGiven EmployeeExpense[]   @relation("EmployeeExpenseCreatedBy")
+  passwordResetTokens   PasswordResetToken[]
+
+  @@index([branchId])
+  @@map("users")
+}
+
+model Permission {
+  code    String @id
+  labelEn String @map("label_en")
+  labelAr String @map("label_ar")
+  module  String
+
+  employeePermissions EmployeePermission[]
+
+  @@map("permissions")
+}
+
+model EmployeePermission {
+  userId         String @map("user_id")
+  permissionCode String @map("permission_code")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionCode], references: [code], onDelete: Cascade)
+
+  @@id([userId, permissionCode])
+  @@map("employee_permissions")
+}
+
+model Category {
+  id                   String  @id @default(cuid())
+  slug                 String  @unique
+  nameEn               String  @map("name_en")
+  nameAr               String  @map("name_ar")
+  description          String?
+  bannerImage          String? @map("banner_image")
+  // CSS object-position for the banner (e.g. "center", "top", "50% 20%").
+  // Lets a photo whose focal point isn't dead-center (a bouquet held low
+  // in someone's hand, a product near one edge) stay uncropped instead
+  // of forcing a blind center object-fit: cover on every banner.
+  bannerObjectPosition String? @map("banner_object_position")
+  sortOrder            Int     @default(0) @map("sort_order")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  name          String
+  nameEn        String?       @map("name_en")
+  description   String?
+  descriptionEn String?       @map("description_en")
+  categoryId    String        @map("category_id")
+  price         Decimal      
+  discountPrice Decimal?      @map("discount_price")
+  badge         String?
+  isFeatured    Boolean       @default(false) @map("is_featured")
+  isBestseller  Boolean       @default(false) @map("is_bestseller")
+  isNew         Boolean       @default(false) @map("is_new")
+  stockQty      Int           @default(10) @map("stock_qty")
+  status        ProductStatus @default(active)
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  cartItems     CartItem[]
+  wishlistItems WishlistItem[]
+  orderItems    OrderItem[]
+
+  // Per-location stock (Freesia Omni-Channel). `stockQty` above is kept
+  // as-is for backward compatibility during migration — see PROGRESS.md
+  // §Phase 1. New code must read/write through `Inventory`, never
+  // `stockQty` directly.
+  inventory            Inventory[]
+  inventoryMovements   InventoryMovement[]
+  stockTransferItems   StockTransferItem[]
+  posSaleItems         PosSaleItem[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String @id @default(cuid())
+  productId String @map("product_id")
+  filename  String
+  sortOrder Int    @default(0) @map("sort_order")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  userId    String?  @map("user_id")
+  productId String   @map("product_id")
+  qty       Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([sessionId])
+  @@map("cart_items")
+}
+
+model WishlistItem {
+  userId    String @map("user_id")
+  productId String @map("product_id")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+  @@map("wishlist_items")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  userId       String?     @map("user_id")
+  customerName String      @map("customer_name")
+  email        String
+  phone        String
+  address      String
+  notes        String?
+  subtotal     Decimal    
+  deliveryFee  Decimal     @map("delivery_fee")
+  total        Decimal    
+  status       OrderStatus @default(pending)
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  user  User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items OrderItem[]
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String  @map("order_id")
+  productId     String? @map("product_id")
+  nameSnapshot  String  @map("name_snapshot")
+  priceSnapshot Decimal @map("price_snapshot")
+  qty           Int
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Offer {
+  id              String  @id @default(cuid())
+  title           String
+  description     String?
+  discountPercent Int?    @map("discount_percent")
+  bannerImage     String? @map("banner_image")
+  active          Boolean @default(true)
+
+  @@map("offers")
+}
+
+// Singleton row (id always "main") holding store-wide, admin-editable
+// configuration — currently just Formspree, expandable later without a
+// migration for every new setting.
+model StoreSettings {
+  id                String  @id @default("main")
+  formspreeEndpoint String? @map("formspree_endpoint")
+  formspreeEnabled  Boolean @default(false) @map("formspree_enabled")
+
+  // The warehouse online orders are fulfilled from & deducted against.
+  // Nullable on purpose: nothing is pre-selected. The admin must choose
+  // an existing warehouse from /admin/settings before checkout can run;
+  // until then checkout must fail with a clear, explicit error instead
+  // of silently guessing a location.
+  onlineFulfillmentWarehouseId String?    @map("online_fulfillment_warehouse_id")
+  onlineFulfillmentWarehouse   Warehouse? @relation(fields: [onlineFulfillmentWarehouseId], references: [id], onDelete: SetNull)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("store_settings")
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// Omni-Channel: Branches, Warehouses, Inventory, POS, Transfers, Expenses
+//
+// Nothing here is ever seeded. No branch, warehouse, or inventory row is
+// created automatically anywhere in the codebase (schema, seed, or app
+// code) — see prisma/seed.ts and PROGRESS.md. The admin creates every
+// branch/warehouse by hand from the dashboard, names them, links them,
+// and enters starting quantities. The system only updates quantities
+// afterwards, and only as the result of a real operation (sale, POS
+// sale, transfer, purchase, return, damage, or manual adjustment), and
+// always through `InventoryMovement` — never a silent field write.
+// ───────────────────────────────────────────────────────────────────────
+
+model Branch {
+  id         String       @id @default(cuid())
+  name       String
+  branchCode String       @unique @map("branch_code")
+  address    String?
+  phone      String?
+  status     BranchStatus @default(active)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  employees          User[]
+  warehouses         Warehouse[]
+  inventoryMovements InventoryMovement[]
+  stockTransfers     StockTransfer[]
+  posSales           PosSale[]
+  expenses           Expense[]
+  employeeExpenses   EmployeeExpense[]
+
+  @@map("branches")
+}
+
+model Warehouse {
+  id        String          @id @default(cuid())
+  name      String
+  type      WarehouseType
+  branchId  String?         @map("branch_id")
+  address   String?
+  status    WarehouseStatus @default(active)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  inventory            Inventory[]
+  inventoryMovements   InventoryMovement[]
+  transfersOut         StockTransfer[]     @relation("TransferFromWarehouse")
+  transfersIn          StockTransfer[]     @relation("TransferToWarehouse")
+  posSales             PosSale[]
+  onlineFulfillmentFor StoreSettings[]
+
+  @@index([branchId])
+  @@map("warehouses")
+}
+
+/// One row per (product, warehouse) — the single source of truth for
+/// "how much of this product is at this location right now".
+model Inventory {
+  id                 String   @id @default(cuid())
+  productId          String   @map("product_id")
+  warehouseId        String   @map("warehouse_id")
+  quantity           Int      @default(0)
+  reservedQuantity   Int      @default(0) @map("reserved_quantity")
+  availableQuantity  Int      @default(0) @map("available_quantity")
+  reorderLevel       Int      @default(0) @map("reorder_level")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, warehouseId])
+  @@index([warehouseId])
+  @@index([productId])
+  @@map("inventory")
+}
+
+/// Append-only audit trail. Every quantity change anywhere in the system
+/// must write one of these — there is no other sanctioned way to change
+/// `Inventory.quantity`.
+model InventoryMovement {
+  id               String       @id @default(cuid())
+  productId        String       @map("product_id")
+  warehouseId      String       @map("warehouse_id")
+  quantityChange   Int          @map("quantity_change")
+  previousQuantity Int          @map("previous_quantity")
+  newQuantity      Int          @map("new_quantity")
+  movementType     MovementType @map("movement_type")
+  referenceId      String?      @map("reference_id")
+  branchId         String?      @map("branch_id")
+  userId           String?      @map("user_id")
+  notes            String?
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([movementType])
+  @@index([createdAt])
+  @@map("inventory_movements")
+}
+
+model StockTransfer {
+  id              String         @id @default(cuid())
+  fromWarehouseId String         @map("from_warehouse_id")
+  toWarehouseId   String         @map("to_warehouse_id")
+  status          TransferStatus @default(pending)
+  notes           String?
+  branchId        String?        @map("branch_id")
+  createdById     String         @map("created_by_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  completedAt     DateTime?      @map("completed_at")
+
+  fromWarehouse Warehouse           @relation("TransferFromWarehouse", fields: [fromWarehouseId], references: [id], onDelete: Restrict)
+  toWarehouse   Warehouse           @relation("TransferToWarehouse", fields: [toWarehouseId], references: [id], onDelete: Restrict)
+  branch        Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdBy     User                @relation("StockTransferCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items         StockTransferItem[]
+
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id         String @id @default(cuid())
+  transferId String @map("transfer_id")
+  productId  String @map("product_id")
+  quantity   Int
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("stock_transfer_items")
+}
+
+model PosSale {
+  id            String        @id @default(cuid())
+  branchId      String        @map("branch_id")
+  warehouseId   String        @map("warehouse_id")
+  cashierId     String        @map("cashier_id")
+  customerId    String?       @map("customer_id")
+  subtotal      Decimal      
+  discount      Decimal       @default(0)
+  total         Decimal      
+  paymentMethod PaymentMethod @map("payment_method")
+  status        SaleStatus    @default(completed)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  branch    Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  warehouse Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  cashier   User          @relation("PosSaleCashier", fields: [cashierId], references: [id], onDelete: Restrict)
+  items     PosSaleItem[]
+
+  @@index([branchId])
+  @@index([createdAt])
+  @@map("pos_sales")
+}
+
+model PosSaleItem {
+  id            String  @id @default(cuid())
+  saleId        String  @map("sale_id")
+  productId     String  @map("product_id")
+  nameSnapshot  String  @map("name_snapshot")
+  priceSnapshot Decimal @map("price_snapshot")
+  qty           Int
+
+  sale    PosSale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("pos_sale_items")
+}
+
+model Expense {
+  id           String          @id @default(cuid())
+  branchId     String?         @map("branch_id")
+  category     ExpenseCategory
+  amount       Decimal        
+  description  String?
+  expenseDate  DateTime        @map("expense_date")
+  receiptImage String?         @map("receipt_image")
+  createdById  String          @map("created_by_id")
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  branch    Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdBy User    @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([branchId])
+  @@index([category])
+  @@index([expenseDate])
+  @@map("expenses")
+}
+
+model EmployeeExpense {
+  id          String              @id @default(cuid())
+  employeeId  String              @map("employee_id")
+  branchId    String?             @map("branch_id")
+  type        EmployeeExpenseType
+  amount      Decimal            
+  date        DateTime
+  notes       String?
+  createdById String              @map("created_by_id")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  employee  User    @relation("EmployeeExpenseOwner", fields: [employeeId], references: [id], onDelete: Restrict)
+  branch    Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdBy User    @relation("EmployeeExpenseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([employeeId])
+  @@index([branchId])
+  @@map("employee_expenses")
+}
+
+/// Forgot/reset password (spec: works for admin, employee, and customer
+/// accounts alike — anyone with email+password). We store a hash of the
+/// token, never the token itself, so a DB read alone can't be used to
+/// reset someone's password; the raw token only ever exists in the
+/// email link and briefly in memory while handling the request.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}

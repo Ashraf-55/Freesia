@@ -1,0 +1,356 @@
+@import "tailwindcss";
+
+:root {
+  --blush-50: #fdf4f2;
+  --blush-100: #fbe7e2;
+  --coral-300: #f3a89a;
+  --coral-400: #ee9584;
+  --coral-500: #e8806c;
+  --coral-600: #d96b56;
+  --ink-900: #241f1e;
+  --ink-700: #4a413f;
+  --ink-500: #7a6f6c;
+  --ink-300: #b5aaa7;
+  --gold-500: #c9a15a;
+  --gold-600: #b78d43;
+  --cream: #fffaf7;
+  --white: #ffffff;
+  --success: #3f8f5f;
+  --error: #c0392b;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --shadow-soft: 0 10px 30px rgba(36, 31, 30, 0.08);
+  --shadow-lift: 0 22px 45px -12px rgba(36, 31, 30, 0.22);
+  --shadow-gold: 0 8px 24px -6px rgba(201, 161, 90, 0.45);
+
+  --background: var(--cream);
+  --foreground: var(--ink-900);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-blush-50: var(--blush-50);
+  --color-blush-100: var(--blush-100);
+  --color-coral-300: var(--coral-300);
+  --color-coral-400: var(--coral-400);
+  --color-coral-500: var(--coral-500);
+  --color-coral-600: var(--coral-600);
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-cream: var(--cream);
+  --font-sans: var(--font-cairo);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* ---------------------------------------------------------------------
+   Freesia design system — shared luxury-brand utilities.
+   Kept centralized here instead of scattered inline styles so every
+   page (storefront + admin) reads from the same visual language.
+   ------------------------------------------------------------------ */
+
+/* Product/media frame: shows the WHOLE photo (contain) inside a soft
+   gradient stage instead of cropping it (cover) — mugs, boxes and
+   bouquets keep their real proportions on every card, gallery and
+   thumbnail across the site. */
+.media-frame {
+  position: relative;
+  background: linear-gradient(155deg, var(--blush-50) 0%, #fff 55%, var(--blush-50) 100%);
+}
+.media-frame img {
+  object-fit: contain !important;
+}
+
+.luxury-card {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lift);
+}
+
+.underline-grow {
+  position: relative;
+}
+.underline-grow::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 0;
+  background: var(--gold-500);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.underline-grow:hover::after {
+  width: 100%;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.display-heading {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.gold-divider {
+  height: 1px;
+  width: 56px;
+  background: linear-gradient(90deg, var(--gold-500), transparent);
+}
+
+.section-eyebrow {
+  color: var(--gold-600);
+  letter-spacing: 0.14em;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------
+   Animation & micro-interaction system
+   Adds premium motion on top of the existing palette only — no new
+   colors are introduced anywhere in this section.
+   ------------------------------------------------------------------ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.9s ease both;
+}
+
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-down {
+  animation: fade-down 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-left {
+  from { opacity: 0; transform: translateX(-36px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-left {
+  animation: fade-left 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-right {
+  from { opacity: 0; transform: translateX(36px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-right {
+  animation: fade-right 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes scale-reveal {
+  from { opacity: 0; transform: scale(0.93); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scale-reveal {
+  animation: scale-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Very gentle, barely-there continuous motion for a single accent
+   element (a flower glyph, a badge) — never applied to whole sections.
+   Disabled entirely under prefers-reduced-motion below. */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+.animate-float {
+  animation: float-gentle 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-in-panel {
+  from { transform: translateX(var(--panel-from, 100%)); }
+  to { transform: translateX(0); }
+}
+[dir="rtl"] .panel-slide {
+  --panel-from: -100%;
+}
+[dir="ltr"] .panel-slide {
+  --panel-from: 100%;
+}
+.animate-slide-in-panel {
+  animation: slide-in-panel 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  55% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.animate-heart-pop {
+  animation: heart-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.3) rotate(-8deg); }
+  70% { transform: scale(0.95) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.animate-bump {
+  animation: bump 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pop-badge {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop-badge {
+  animation: pop-badge 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(0.97); }
+}
+.animate-toast-in {
+  animation: toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-toast-out {
+  animation: toast-out 0.25s ease both;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(100deg, var(--blush-50) 30%, #fff 50%, var(--blush-50) 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Scroll-reveal: paired with the IntersectionObserver in
+   scroll-reveal.tsx. Elements start hidden and are revealed once they
+   enter the viewport, so content above the fold never flashes empty
+   on slow devices. data-dir varies the entry direction section by
+   section (up/down/left/right/scale) for a less repetitive, more
+   cinematic scroll story — the resting state is always the same. */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1), transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-on-scroll[data-dir="down"] {
+  transform: translateY(-26px);
+}
+.reveal-on-scroll[data-dir="left"] {
+  transform: translateX(-44px);
+}
+.reveal-on-scroll[data-dir="right"] {
+  transform: translateX(44px);
+}
+.reveal-on-scroll[data-dir="scale"] {
+  transform: scale(0.94);
+}
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger grid: pairs with stagger-grid.tsx. The whole grid is
+   observed once; the moment it enters view, every .stagger-item
+   inside transitions in together but each on its own transition-delay
+   (set inline per item), so cards cascade in one-by-one instead of
+   firing the instant the page mounts, off-screen and unseen. */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.stagger-container.in-view .stagger-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* Buttons & interactive elements: consistent, subtle press feedback
+   that layers on top of whatever color classes are already applied. */
+.btn-press {
+  transition: transform 0.15s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* Focus states — visible keyboard focus ring using the existing gold
+   accent, without altering any element's resting colors. */
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+}
+
+/* Horizontally-scrollable containers (admin tables on narrow screens)
+   get a slim, unobtrusive scrollbar instead of the chunky default. */
+.scroll-x-thin {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blush-100) transparent;
+}
+.scroll-x-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-x-thin::-webkit-scrollbar-thumb {
+  background: var(--blush-100);
+  border-radius: 999px;
+}
+
+/* Respect the user's OS-level motion preference: shut nearly all
+   animation/transition effects off instead of just shortening them. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal-on-scroll,
+  .stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
