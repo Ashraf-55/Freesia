@@ -22,7 +22,12 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+// NOTE: in current next-auth v5 betas the "next-auth/jwt" submodule is not
+// always resolvable by TypeScript (upstream bug). The JWT type actually
+// lives in @auth/core (a next-auth dependency), so we augment it there
+// instead. If a future next-auth release fixes the "next-auth/jwt" export,
+// this declaration can be switched back.
+declare module "@auth/core/jwt" {
   interface JWT {
     uid?: string;
     role?: "admin" | "employee" | "customer";

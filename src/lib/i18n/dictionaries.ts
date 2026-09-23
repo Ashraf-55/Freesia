@@ -517,6 +517,9 @@ export const dictionaries = {
       changePassword: "تغيير كلمة المرور",
       savePermissions: "حفظ الصلاحيات",
       selfNote: "لا يمكنك تعديل صلاحياتك الخاصة.",
+      branch: "الفرع",
+      noBranch: "بدون فرع",
+      saveBranch: "حفظ الفرع",
     },
     accountPage: {
       title: "حسابي",
@@ -1103,6 +1106,9 @@ export const dictionaries = {
       changePassword: "Change password",
       savePermissions: "Save permissions",
       selfNote: "You can't edit your own permissions.",
+      branch: "Branch",
+      noBranch: "No branch",
+      saveBranch: "Save branch",
     },
     accountPage: {
       title: "My account",
@@ -1179,8 +1185,15 @@ export const dictionaries = {
 } as const;
 
 export type Locale = keyof typeof dictionaries;
-export type Dictionary = (typeof dictionaries)["ar"];
+
+type Widen<T> = T extends string
+  ? string
+  : T extends (...args: infer A) => infer R
+  ? (...args: A) => R
+  : { readonly [K in keyof T]: Widen<T[K]> };
+
+export type Dictionary = Widen<(typeof dictionaries)["ar"]>;
 
 export function dictionaryFor(locale: Locale): Dictionary {
-  return dictionaries[locale];
+  return dictionaries[locale] as Dictionary;
 }
