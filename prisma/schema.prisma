@@ -1,12 +1,15 @@
 // Freesia — Prisma Schema
-// Mirrors the original Flask/SQLite schema 1:1. Back on SQLite.
+// Originally mirrored the Flask/SQLite schema 1:1. Now running on
+// Postgres (e.g. Neon) since SQLite's file-based storage doesn't work
+// on serverless hosts like Vercel — the filesystem there is read-only
+// outside /tmp, so a local dev.db file can't be written to in production.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
