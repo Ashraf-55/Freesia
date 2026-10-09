@@ -1,0 +1,17 @@
+-- NO-OP (history repair, 2026-10-07).
+--
+-- This migration originally cleared `discount_price` and added
+-- `products.starting_price`. Both are fully handled by
+-- `20260930092506_remove_price_range_add_starting_price`, which adds
+-- `starting_price` and drops `discount_price` entirely.
+--
+-- Why it had to become a no-op:
+--   * It was never recorded in `_prisma_migrations` of the live
+--     database, whose schema already has `starting_price` and no
+--     `discount_price` column. Replaying it would fail with
+--     "duplicate column name: starting_price".
+--   * On a brand-new database it collided with the earlier
+--     `20260928000000` migration for the same reason.
+--
+-- The file is kept (not deleted) so migration history stays complete.
+SELECT 1;

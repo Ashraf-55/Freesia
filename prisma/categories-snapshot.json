@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "natural-flowers",
+    "name_en": "Natural Flowers",
+    "name_ar": "ورد طبيعي",
+    "description": "بوكيهات ورد طبيعي طازج مُنسّقة يدويًا لكل مناسبة.",
+    "banner_image": "natural-flowers/natural_flowers_01.jpg",
+    "sort_order": 0
+  },
+  {
+    "slug": "artificial-flowers",
+    "name_en": "Artificial Flowers",
+    "name_ar": "ورد صناعي",
+    "description": "تشكيلة ورد صناعي فاخر يدوم للأبد بلمسة أنيقة.",
+    "banner_image": "artificial-flowers/artificial_flowers_01.jpg",
+    "sort_order": 1
+  },
+  {
+    "slug": "premium-flowers",
+    "name_en": "Premium Flowers",
+    "name_ar": "ورد ترقية / فاخر",
+    "description": "تشكيلة مميزة من البوكيهات الكبيرة والفاخرة للمناسبات الخاصة.",
+    "banner_image": "premium-flowers/premium_flowers_01.jpg",
+    "sort_order": 2
+  },
+  {
+    "slug": "gift-boxes",
+    "name_en": "Gift Boxes",
+    "name_ar": "بوكسات هدايا",
+    "description": "بوكسات هدايا فاخرة تجمع الورد مع الشوكولاتة أو هدايا مميزة.",
+    "banner_image": "gift-boxes/gift_boxes_01.jpg",
+    "sort_order": 3
+  },
+  {
+    "slug": "mugs",
+    "name_en": "Mugs",
+    "name_ar": "مجات",
+    "description": "مجات سيراميك مميزة بتصميمات وألوان مختلفة.",
+    "banner_image": "mugs/mugs_07.jpg",
+    "sort_order": 4
+  },
+  {
+    "slug": "teddy-bears",
+    "name_en": "Teddy Bears",
+    "name_ar": "دِباديب",
+    "description": "دباديب وشخصيات محشوة ضمن تنسيقات هدايا فاخرة.",
+    "banner_image": "teddy-bears/teddy_bears_01.jpg",
+    "sort_order": 5
+  },
+  {
+    "slug": "accessories",
+    "name_en": "Accessories",
+    "name_ar": "إكسسوارات",
+    "description": "ساعات وإكسسوارات فاخرة تُقدَّم في عبوة أنيقة.",
+    "banner_image": "accessories/accessories_01.jpg",
+    "sort_order": 6
+  },
+  {
+    "slug": "engagement-trays",
+    "name_en": "Engagement Trays",
+    "name_ar": "صواني الشبكة",
+    "description": "صواني شبكة فاخرة لتنسيقات الأفراح والمناسبات.",
+    "banner_image": "engagement-trays/engagement_trays_01.jpg",
+    "sort_order": 7
+  },
+  {
+    "slug": "crystal-domes",
+    "name_en": "Crystal Domes",
+    "name_ar": "بلورات",
+    "description": "قباب زجاجية فاخرة تحتضن وردة محفوظة مع درج صغير للمجوهرات.",
+    "banner_image": "crystal-domes/crystal_domes_01.jpg",
+    "sort_order": 8
+  },
+  {
+    "slug": "presentation-boxes",
+    "name_en": "Presentation Boxes",
+    "name_ar": "علب تقديم",
+    "description": "علب تقديم أنيقة بغطاء شفاف لتقديم الحلويات والهدايا الصغيرة.",
+    "banner_image": "presentation-boxes/presentation_boxes_01.jpg",
+    "sort_order": 9
+  },
+  {
+    "slug": "gift-bags",
+    "name_en": "Gift Bags",
+    "name_ar": "شنط هدايا",
+    "description": "شنط هدايا أنيقة لتقديم هداياكم بلمسة مميزة.",
+    "banner_image": null,
+    "sort_order": 10
+  }
+]

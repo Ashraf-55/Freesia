@@ -1,0 +1,20 @@
+-- NO-OP (history repair, 2026-10-07).
+--
+-- This migration originally added `products.starting_price` and
+-- collapsed the retired Price Range into a single price. That work is
+-- now performed — once, correctly, and in the right order — by
+-- `20260930092506_remove_price_range_add_starting_price`.
+--
+-- Why it had to become a no-op:
+--   * It was never recorded in `_prisma_migrations` of the live
+--     database, but the later `20260930092506` migration (which DID
+--     run there) had already added `starting_price` and DROPPED
+--     `price_min` / `price_max`. Replaying this file would fail with
+--     "no such column: price_min".
+--   * On a brand-new database it ran before `20260930092506`, which
+--     then failed with "duplicate column name: starting_price".
+--
+-- Nothing is lost: the live database already contains the result of
+-- this migration's intent (see 20260930092506). The file is kept (not
+-- deleted) so migration history stays complete and ordered.
+SELECT 1;
